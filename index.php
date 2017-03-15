@@ -19,6 +19,8 @@ class Mongo {
 		| It is good to set explicitly or using config file instead of using setter method
 		| So, it will cut down method calls and conditions, in concern to performance
 		|-----------------------------------------
+		| For default - we use setter to set credentials like Database name, Collections name
+		|
 		*/		
 		protected $connection;
 		protected $host = 'localhost';
@@ -26,6 +28,7 @@ class Mongo {
 		protected $username;
 		protected $password;
 		protected $database;
+		protected $collection;
 
 		
 
@@ -82,9 +85,11 @@ class Mongo {
 		| Bind $connection->$database->$collection
 		*/
 		public function prep_document(){
+
 			$database 	= $this->database;
 			$collection = $this->collection;
 			return $this->connection->$database->$collection;
+
 		}
 
 
@@ -132,8 +137,10 @@ class Mongo {
 		| return : json data
 		*/
 		public function find_data_by_id($arg){
+
 			$prepare = $this->prep_document();
 			return $prepare->findOne(["_id" => new MongoDB\BSON\ObjectID($arg)]);
+
 		}
 
 
@@ -145,8 +152,10 @@ class Mongo {
 		| return : json data (only 1 document)
 		*/
 		public function find_data(array $arg){
+
 			$prepare = $this->prep_document();
 			return $prepare->findOne($arg);
+			
 		}
 
 
@@ -158,8 +167,18 @@ class Mongo {
 		| return : json data
 		*/
 		public function find_all(array $arg){
-			$prepare = $this->prep_document();
-			return $prepare->find($arg);
+
+			$prepare 	= $this->prep_document();
+			$result		= $prepare->find($arg);
+
+			$data = [];
+			echo '<pre>';
+			foreach($result as $key => $val){
+				$data[] = $val;
+			}
+
+			return json_decode(json_encode($data), true);
+
 		}
 
 
@@ -173,20 +192,24 @@ class Mongo {
 $mdb = new Mongo();
 $mdb->set_database('shop');
 $mdb->set_collection('products');
-/*$multiple = $mdb->insert_documents([
+$multiple = $mdb->insert_documents([
 				[
+					'_id' => md5(microtime()),
 				    'username' => 'admin1',
 				    'email' => 'admin@example.com',
 				    'name' => 'Admin User',
 				    'date' => '25.08.1987',
 				],
 				[
+					'_id' => md5(microtime()),
 				    'username' => 'admin2',
 				    'email' => 'admin@example.com',
 				    'name' => 'Admin User',
 				    'date' => '25.08.1987',
 				]
-			]);*/
+			]);
+
+
 			
 $data = $mdb->find_all(['username' => 'admin1', 'email' => 'admin@example.com']);
 
